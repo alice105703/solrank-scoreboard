@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>솔랭내기 점수판</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<style>
+:root{
+  --bg:#0b1020; --panel:#121a30; --panel2:#18223d; --line:#26324f;
+  --text:#e8ecf6; --muted:#8d98b5; --gold:#e4b95b; --win:#3d8bff; --loss:#ff5468;
+  --a:#3d8bff; --b:#ff8a3d;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:"Noto Sans KR",system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+button{font:inherit;cursor:pointer;border:0}
+button:disabled{opacity:.35;cursor:not-allowed}
+input{font:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 60px}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:16px}
+h1{margin:0;font-size:26px;font-weight:900;letter-spacing:-.5px}
+.status{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.status i{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block}
+.status.ok i{background:#3ecf8e}.status.wait i{background:var(--gold)}.status.bad i{background:var(--loss)}
+.period{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 14px;font-size:13px;color:var(--muted);margin-bottom:14px;display:flex;flex-wrap:wrap;gap:6px 16px}
+.period b{color:var(--text)}
+.vs{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:stretch;margin-bottom:16px}
+.tbox{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;position:relative;overflow:hidden}
+.tbox.a{border-top:3px solid var(--a)}.tbox.b{border-top:3px solid var(--b);text-align:right}
+.tbox .tn{font-size:13px;color:var(--muted);font-weight:700}
+.tbox .tv{font-size:34px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1.15}
+.tbox .ts{font-size:12px;color:var(--muted)}
+.tbox.lead::after{content:"리드 중";position:absolute;top:10px;font-size:11px;font-weight:700;color:#111;background:var(--gold);padding:2px 8px;border-radius:99px}
+.tbox.a.lead::after{right:12px}.tbox.b.lead::after{left:12px}
+.vsmid{display:flex;align-items:center;font-weight:900;color:var(--muted);font-size:18px}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.tb{background:var(--panel2);color:var(--text);border:1px solid var(--line);padding:9px 14px;border-radius:10px;font-size:14px;font-weight:500}
+.tb.primary{background:var(--gold);color:#1a1405;border-color:var(--gold);font-weight:700}
+.teams{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.team h2{font-size:16px;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+.team h2 .dot{width:10px;height:10px;border-radius:3px}
+.cards{display:grid;gap:10px}
+.p{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.p .row1{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.p .name{font-size:18px;font-weight:900}
+.chip{font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--panel2);color:var(--muted)}
+.chip.w{background:rgba(61,139,255,.18);color:#8fbaff}.chip.l{background:rgba(255,84,104,.16);color:#ff96a3}
+.chip.first{background:var(--gold);color:#1a1405}.chip.last{background:#3a2330;color:#ff96a3}
+.chip.warn{background:rgba(228,185,91,.15);color:var(--gold)}
+.p .score{margin-left:auto;font-size:26px;font-weight:900;font-variant-numeric:tabular-nums}
+.pos{color:#8fbaff}.neg{color:#ff7d8d}.zero{color:var(--text)}
+.p .meta{font-size:12px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums}
+.bar{height:5px;background:var(--panel2);border-radius:99px;margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--muted);border-radius:99px}
+.bar i.done{background:#3ecf8e}
+.dots{display:flex;gap:3px;margin-top:8px;flex-wrap:wrap;min-height:10px}
+.dots span{width:10px;height:10px;border-radius:2px}
+.dots .W{background:var(--win)}.dots .L{background:var(--loss)}
+.btns{display:grid;grid-template-columns:1fr 1fr 44px;gap:6px;margin-top:10px}
+.bw,.bl,.bu{padding:11px 0;border-radius:10px;font-weight:700;font-size:15px}
+.bw{background:var(--win);color:#fff}.bl{background:var(--loss);color:#fff}.bu{background:var(--panel2);color:var(--muted);border:1px solid var(--line)}
+.bw small,.bl small{font-weight:500;opacity:.85;font-size:12px;margin-left:4px}
+.note{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5}
+.edit{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.edit input{flex:1;min-width:90px;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.edit button{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px}
+.edit button.danger{color:#ff96a3}
+.add{display:flex;gap:6px}
+.add input{flex:1;background:var(--panel);color:var(--text);border:1px dashed var(--line);border-radius:10px;padding:10px}
+.add button{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:0 14px}
+section.box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-top:16px}
+section.box h3{margin:0 0 10px;font-size:15px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+textarea.out{width:100%;min-height:230px;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:12px;font:14px/1.6 ui-monospace,"Noto Sans KR",monospace;resize:vertical}
+.log{list-style:none;margin:0;padding:0;font-size:13px;max-height:320px;overflow:auto}
+.log li{display:flex;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+.log li .t{color:var(--muted);width:92px;flex:none}
+.rules{font-size:13px;color:var(--muted);line-height:1.7;margin:0;padding-left:18px}
+.rules b{color:var(--text)}
+details summary{cursor:pointer;font-weight:700;font-size:15px}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#222c47;border:1px solid var(--line);color:var(--text);padding:10px 16px;border-radius:10px;font-size:14px;box-shadow:0 8px 30px rgba(0,0,0,.4);z-index:9;max-width:90vw}
+@media (max-width:760px){
+  .teams{grid-template-columns:1fr}
+  .vs{grid-template-columns:1fr 1fr}.vsmid{display:none}
+  .tbox .tv{font-size:28px}
+  h1{font-size:22px}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+(function(){
+const START=new Date('2026-11-14T00:00:00+09:00'), END=new Date('2026-11-29T23:59:59+09:00');
+const MIN=40, FEE=10000, LSKEY='solrank-cache', readOnly=false;
+let state=null, editing=false, confirmDel=null, busy=0, queue=Promise.resolve(), netErr=false;
+try{const c=localStorage.getItem(LSKEY);if(c)state=JSON.parse(c)}catch(_){}
+const app=document.getElementById('app');
+
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sg=n=>(n>0?'+':'')+(Math.round(n*10)/10);
+const cls=n=>n>0?'pos':n<0?'neg':'zero';
+const pts=k=>10+(k>=3?5*(k-2):0);
+function calc(games){let s=0,st=0,w=0,l=0;const per=[];for(const g of games){let d;if(g.r==='W'){w++;st=st>0?st+1:1;d=pts(st)}else{l++;st=st<0?st-1:-1;d=-pts(-st)}s+=d;per.push(d)}
+  return{s,st,w,l,n:games.length,per,nextW:st>0?pts(st+1):10,nextL:st<0?pts(-st+1):10}}
+const allPlayers=()=>state.teams.flatMap((t,ti)=>t.players.map(p=>({p,ti})));
+function teamStats(t){const cs=t.players.map(p=>calc(p.games));const total=cs.reduce((a,c)=>a+c.s,0);return{total,avg:t.players.length?total/t.players.length:0,games:cs.reduce((a,c)=>a+c.n,0)}}
+function kstStr(ts){const d=new Date(ts+9*3600e3);const p=n=>String(n).padStart(2,'0');return `${d.getUTCMonth()+1}/${d.getUTCDate()} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())}`}
+
+function periodInfo(){const now=Date.now();
+  if(now<START)return{label:`시작 전 · ${Math.ceil((START-now)/864e5)}일 남음`,daysLeft:16};
+  if(now>END)return{label:'내기 종료 · 최종 정산',daysLeft:0};
+  const dl=Math.ceil((END-now)/864e5);return{label:`진행 중 · 마감까지 ${dl}일`,daysLeft:dl}}
+
+function render(){
+  const ts=state.teams.map(teamStats);
+  const sizesDiffer=state.teams[0].players.length!==state.teams[1].players.length;
+  const lead=ts[0].avg===ts[1].avg?-1:(ts[0].avg>ts[1].avg?0:1);
+  const anyGames=ts[0].games+ts[1].games>0;
+  const per=periodInfo();
+  const n=allPlayers().length;
+  const st=statusInfo();
+  let h=`<div class="wrap">
+  <header class="top"><h1>솔랭내기 점수판</h1>
+  <div class="status ${st.c}"><i></i>${st.t}</div></header>
+  <div class="period"><span><b>기간</b> 2026.11.14 00:00 ~ 11.29 23:59</span><span><b>${per.label}</b></span><span><b>최소</b> ${MIN}판</span><span><b>참가비 풀</b> ${(FEE*n).toLocaleString()}원 (${n}명)</span></div>
+  <div class="vs">`;
+  state.teams.forEach((t,i)=>{const s=ts[i];const show=sizesDiffer?s.avg:s.total;
+    h+=`<div class="tbox ${i?'b':'a'} ${anyGames&&lead===i?'lead':''}"><div class="tn">TEAM ${esc(t.name)}</div><div class="tv ${cls(show)}">${sg(show)}</div>
+    <div class="ts">합계 ${sg(s.total)} · 평균 ${sg(s.avg)} · ${t.players.length}명 · ${s.games}판</div></div>`;
+    if(i===0)h+=`<div class="vsmid">VS</div>`});
+  h+=`</div>
+  <div class="toolbar">
+    <button class="tb primary" data-act="copy">📋 점수판 텍스트 복사</button>
+    <button class="tb" data-act="undoLast" ${readOnly?'disabled':''}>↶ 마지막 입력 취소</button>
+    <button class="tb" data-act="edit" ${readOnly?'disabled':''}>${editing?'✓ 편집 끝내기':'✎ 선수 편집'}</button>
+  </div>
+  <div class="teams">`;
+  state.teams.forEach((t,ti)=>{
+    const cs=t.players.map(p=>calc(p.games));
+    const scores=cs.map(c=>c.s), mx=Math.max(...scores), mn=Math.min(...scores);
+    const played=cs.some(c=>c.n>0);
+    h+=`<div class="team"><h2><span class="dot" style="background:var(--${ti?'b':'a'})"></span>TEAM ${esc(t.name)}</h2><div class="cards">`;
+    t.players.forEach((p,pi)=>{const c=cs[pi];
+      const first=played&&c.s===mx&&t.players.length>1, last=played&&c.s===mn&&mx!==mn;
+      const pct=Math.min(100,c.n/MIN*100);
+      let chips='';
+      if(first)chips+=`<span class="chip first">팀 1등</span>`;
+      if(last)chips+=`<span class="chip last">팀 꼴등</span>`;
+      if(c.st>=2)chips+=`<span class="chip w">${c.st}연승${c.st>=3?' 🔥':''}</span>`;
+      if(c.st<=-2)chips+=`<span class="chip l">${-c.st}연패${c.st<=-3?' 💀':''}</span>`;
+      const need=MIN-c.n;
+      if(need>0&&per.daysLeft<=7&&Date.now()>=START)chips+=`<span class="chip warn">${need}판 남음</span>`;
+      const dots=p.games.slice(-20).map(g=>`<span class="${g.r}"></span>`).join('');
+      h+=`<div class="p"><div class="row1"><span class="name">${esc(p.name)}</span>${chips}<span class="score ${cls(c.s)}">${sg(c.s)}</span></div>
+      <div class="meta">${c.n}판 · ${c.w}승 ${c.l}패${c.n?` · 승률 ${Math.round(c.w/c.n*100)}%`:''}</div>
+      <div class="bar"><i class="${c.n>=MIN?'done':''}" style="width:${pct}%"></i></div>
+      <div class="meta" style="margin-top:3px">${c.n>=MIN?'최소 판수 달성 ✓':`최소 ${MIN}판까지 ${need}판`}</div>
+      <div class="dots">${dots}</div>`;
+      if(editing){
+        h+=`<div class="edit"><input data-rename="${p.id}" value="${esc(p.name)}" maxlength="12">
+        <button data-act="move" data-id="${p.id}">⇄ 팀 이동</button>
+        <button class="danger" data-act="del" data-id="${p.id}">${confirmDel===p.id?'정말 삭제?':'삭제'}</button></div>`;
+      }else{
+        h+=`<div class="btns"><button class="bw" data-act="W" data-id="${p.id}" ${readOnly?'disabled':''}>승<small>+${c.nextW}</small></button>
+        <button class="bl" data-act="L" data-id="${p.id}" ${readOnly?'disabled':''}>패<small>-${c.nextL}</small></button>
+        <button class="bu" data-act="undo" data-id="${p.id}" title="이 선수 마지막 판 취소" ${readOnly||!c.n?'disabled':''}>↶</button></div>`;
+        const note=anyGames&&lead!==-1?settleNote(ti===lead,first,last,c):'';
+        if(note)h+=`<div class="note">${note}</div>`;
+      }
+      h+=`</div>`});
+    if(editing)h+=`<div class="add"><input data-addto="${ti}" placeholder="선수 추가 (이름)" maxlength="12"><button data-act="add" data-team="${ti}">추가</button></div>`;
+    h+=`</div></div>`});
+  h+=`</div>
+  <section class="box"><h3>단톡방용 점수판 <button class="tb primary" data-act="copy">복사</button></h3><textarea class="out" readonly id="out">${esc(textBoard())}</textarea></section>
+  <section class="box"><h3>최근 기록</h3>${logHtml()}</section>
+  <section class="box"><details><summary>점수 규칙 (자동 계산 기준)</summary><ul class="rules" style="margin-top:10px">
+    <li>승리 <b>+10</b>, 패배 <b>-10</b></li>
+    <li>3연승부터 판마다 +5씩 추가: 3연승째 판 <b>+15</b>, 4연승째 <b>+20</b>, 5연승째 <b>+25</b> …</li>
+    <li>3연패부터 판마다 -5씩 추가: 3연패째 판 <b>-15</b>, 4연패째 <b>-20</b> …</li>
+    <li>연승·연패는 반대 결과가 나오면 초기화</li>
+    <li>팀 점수는 <b>총점 ÷ 팀 인원</b>(평균)으로 비교 · 인원이 같으면 합계로 표시</li>
+    <li>최소 ${MIN}판 · 솔로랭크만 · 정지자 나오면 즉시 종료 + 회식비 독박</li>
+    <li>승리팀: 회식비 면제, 참가비 풀 1등부터 차등 지급(마이너스·꼴등은 지급 없음), 1등 배민 3만원</li>
+    <li>패배팀: 회식비 N빵, 1등 서사급 스킨 or 레벨업 정식, 마이너스 +1만원, 꼴등 +1만원 (둘 다면 +2만원)</li>
+  </ul></details></section>
+  </div>`;
+  const ae=document.activeElement, keep=ae&&ae.dataset&&(ae.dataset.addto??null);
+  app.innerHTML=h;
+  if(keep!==null&&keep!==undefined){const el=app.querySelector(`[data-addto="${keep}"]`);if(el)el.focus()}
+}
+function settleNote(win,first,last,c){
+  if(win){
+    if(first&&c.s>0)return '🏆 현재 기준: 회식비 면제 · 배민 3만원 · 참가비 1순위';
+    if(c.s<0||last)return '회식비 면제 · 참가비 배분 없음';
+    return '회식비 면제 · 참가비 차등 배분';
+  }
+  const parts=['회식비 N빵'];
+  if(first)parts.unshift('🎁 스킨 or 레벨업 정식');
+  let fine=0;if(c.s<0)fine+=1;if(last)fine+=1;
+  if(fine)parts.push(`참가비 +${fine}만원`);
+  return '현재 기준: '+parts.join(' · ');
+}
+function textBoard(){
+  const [A,B]=state.teams, ts=state.teams.map(teamStats);
+  const odd=A.players.length!==B.players.length;
+  const line=p=>{if(!p)return '';const c=calc(p.games);return `${p.name} ${c.n}판 ${c.s>=0?'+':''}${c.s}점`};
+  const tv=s=>odd?`${sg(s.avg)}점(평균)`:`${s.total>=0?'+':''}${s.total}점`;
+  const rows=[`TEAM ${A.name} ${tv(ts[0])}  vs  TEAM ${B.name} ${tv(ts[1])}`];
+  const m=Math.max(A.players.length,B.players.length);
+  for(let i=0;i<m;i++)rows.push(`${line(A.players[i])}${A.players[i]&&B.players[i]?' ':''}${line(B.players[i])}`.trim());
+  rows.push(`(${kstStr(Date.now())} 기준)`);
+  return rows.join('\n');
+}
+function logHtml(){
+  const items=[];
+  state.teams.forEach((t,ti)=>t.players.forEach(p=>{const c=calc(p.games);p.games.forEach((g,i)=>items.push({t:g.t,name:p.name,r:g.r,d:c.per[i],ti}))}));
+  items.sort((a,b)=>b.t-a.t);
+  if(!items.length)return '<div class="note">아직 기록이 없어요. 판이 끝날 때마다 승/패 버튼을 눌러주세요.</div>';
+  return '<ul class="log">'+items.slice(0,30).map(x=>`<li><span class="t">${kstStr(x.t)}</span><span style="width:56px;font-weight:700">${esc(x.name)}</span><span class="${x.r==='W'?'pos':'neg'}">${x.r==='W'?'승':'패'} ${x.d>0?'+':''}${x.d}</span></li>`).join('')+'</ul>';
+}
+function find(id){for(const t of state.teams){const i=t.players.findIndex(p=>p.id===id);if(i>=0)return{t,i,p:t.players[i]}}return null}
+
+// ---------- 저장 (서버) ----------
+function statusInfo(){
+  if(!state)return{c:'wait',t:'불러오는 중…'};
+  if(netErr)return{c:'bad',t:'서버 연결 실패 · 다시 시도 중'};
+  if(busy)return{c:'wait',t:'저장 중…'};
+  return{c:'ok',t:'공유 중 · 다른 사람 입력은 1분 안에 반영'};
+}
+function applyLocal(op){
+  const now=Date.now();
+  if(op.op==='game'){const f=find(op.id);if(f)f.p.games.push({r:op.r,t:now})}
+  else if(op.op==='undo'){const f=find(op.id);if(f&&f.p.games.length)f.p.games.pop()}
+  else if(op.op==='undoLast'){let best=null;allPlayers().forEach(({p})=>{const g=p.games[p.games.length-1];if(g&&(!best||g.t>best.t))best={t:g.t,p}});if(best)best.p.games.pop()}
+  else if(op.op==='rename'){const f=find(op.id);if(f)f.p.name=op.name}
+  else if(op.op==='move'){const f=find(op.id);if(f){const o=state.teams[state.teams[0]===f.t?1:0];f.t.players.splice(f.i,1);o.players.push(f.p)}}
+  else if(op.op==='del'){const f=find(op.id);if(f)f.t.players.splice(f.i,1)}
+  else if(op.op==='add'){state.teams[op.team].players.push({id:'tmp'+now,name:op.name,games:[]})}
+}
+function setState(s){state=s;try{localStorage.setItem(LSKEY,JSON.stringify(s))}catch(_){}}
+function send(op){
+  applyLocal(op);busy++;render();
+  queue=queue.then(async()=>{
+    try{
+      const r=await fetch('/api/state',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(op)});
+      const j=await r.json();
+      if(!r.ok)throw new Error(j.error||r.status);
+      netErr=false;busy--;
+      if(!busy)setState(j.state);
+    }catch(e){busy--;netErr=true;toast('저장 실패 😢 잠시 후 다시 눌러주세요');await refresh(true)}
+    render();
+  });
+}
+async function refresh(force){
+  if(busy&&!force)return;
+  try{
+    const r=await fetch('/api/state');const j=await r.json();
+    if(!r.ok)throw new Error(j.error||r.status);
+    netErr=false;
+    if(busy&&!force)return;
+    const rv=s=>(s&&s.rev)||0;
+    if(!state||rv(j.state)>rv(state)||force){setState(j.state);if(!isTyping())render()}
+    else if(!document.querySelector('.wrap'))render();
+  }catch(e){netErr=true;if(state)render()}
+}
+const isTyping=()=>{const a=document.activeElement;return a&&a.tagName==='INPUT'};
+let tt;function toast(msg){let el=document.querySelector('.toast');if(!el){el=document.createElement('div');el.className='toast';document.body.appendChild(el)}el.textContent=msg;clearTimeout(tt);tt=setTimeout(()=>el.remove(),3000)}
+
+// ---------- 이벤트 ----------
+app.addEventListener('click',e=>{
+  const b=e.target.closest('button[data-act]');if(!b||b.disabled||!state)return;
+  const act=b.dataset.act, id=b.dataset.id;
+  if(act==='copy'){const txt=textBoard();
+    const fallback=()=>{const ta=document.getElementById('out');ta.focus();ta.select();toast('텍스트를 선택했어요. 길게 눌러 복사하세요.')};
+    try{navigator.clipboard.writeText(txt).then(()=>toast('점수판을 복사했어요!'),fallback)}catch(_){fallback()}return}
+  if(act==='W'||act==='L'){const f=find(id);if(!f)return;const c=calc(f.p.games.concat([{r:act}]));const d=c.per[c.per.length-1];toast(`${f.p.name} ${act==='W'?'승':'패'} ${d>0?'+':''}${d}점 → 총 ${sg(c.s)}`);send({op:'game',id,r:act});return}
+  if(act==='undo'){const f=find(id);if(f&&f.p.games.length){toast(`${f.p.name} 마지막 판을 취소했어요`);send({op:'undo',id})}return}
+  if(act==='undoLast'){if(!allPlayers().some(({p})=>p.games.length)){toast('취소할 기록이 없어요');return}
+    if(b.dataset.armed!=='1'){b.dataset.armed='1';b.textContent='한 번 더 누르면 취소';setTimeout(()=>render(),2500);return}
+    toast('가장 최근 입력을 취소했어요');send({op:'undoLast'});return}
+  if(act==='edit'){editing=!editing;confirmDel=null;render();return}
+  if(act==='move'){send({op:'move',id});return}
+  if(act==='del'){if(confirmDel!==id){confirmDel=id;render();return}confirmDel=null;send({op:'del',id});return}
+  if(act==='add'){const ti=+b.dataset.team;const inp=app.querySelector(`[data-addto="${ti}"]`);addPlayer(ti,inp.value);return}
+});
+function addPlayer(ti,name){name=name.trim().slice(0,12);if(!name)return;send({op:'add',team:ti,name})}
+app.addEventListener('change',e=>{const id=e.target.dataset.rename;if(id){const v=e.target.value.trim().slice(0,12);const f=find(id);if(v&&f&&v!==f.p.name)send({op:'rename',id,name:v})}});
+app.addEventListener('keydown',e=>{if(e.key==='Enter'){if(e.target.dataset.addto!==undefined){addPlayer(+e.target.dataset.addto,e.target.value)}else if(e.target.dataset.rename){e.target.blur()}}});
+
+if(state)render();else app.innerHTML='<div class="wrap"><h1>솔랭내기 점수판</h1><p class="note">불러오는 중…</p></div>';
+refresh();
+setInterval(()=>{if(document.visibilityState==='visible')refresh()},15000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refresh()});
+setInterval(()=>{if(state&&!busy&&!isTyping())render()},60000);
+})();
+</script>
+</body>
+</html>
